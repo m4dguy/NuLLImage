@@ -7,8 +7,8 @@
 template <typename T> void NuLLMorphology::medianFilter(const Matrix<T>& mtx, Matrix<T>& dst, int radius, float percentile)
 {
     const int radsq = radius * radius;
-    int width = mtx.width();
-    int height = mtx.height();
+	const size_t width = mtx.width();
+	const size_t = mtx.height();
 
     std::vector<T> neighbors;
 	neighbors.reserve((radius+1)*(radius+1));
@@ -38,8 +38,8 @@ template <typename T> void NuLLMorphology::medianFilter(const Matrix<T>& mtx, Ma
 //dilation for matrices
 template <typename T> void NuLLMorphology::dilation(const Matrix<T>& mtx, Matrix<T>& dst, int radius)
 {
-    int width = mtx.width();
-    int height = mtx.height();
+	const size_t = mtx.width();
+	const size_t = mtx.height();
 
     T sup;
     std::vector<T> neighbors;
@@ -77,8 +77,8 @@ template <typename T> void NuLLMorphology::dilation(const Matrix<T>& mtx, Matrix
 //erosion for matrices
 template <typename T> void NuLLMorphology::erosion(const Matrix<T>& mtx, Matrix<T>& dst, int radius)
 {
-    int width = mtx.width();
-    int height = mtx.height();
+	const size_t width = mtx.width();
+	const size_t height = mtx.height();
 
     T inf;
     std::vector<T> neighbors;
@@ -159,8 +159,8 @@ template <typename T> void NuLLMorphology::selfdualTopHat(const Matrix<T>& mtx, 
 //use on binary images with values: 0, 255
 template <typename T> void NuLLMorphology::distanceTransform(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-	uint  width = mtx.width();
-	uint height = mtx.height();
+	const size_t  width = mtx.width();
+	const size_t height = mtx.height();
 
 	//max distance
 	const T inf = (width * width + height * height);
