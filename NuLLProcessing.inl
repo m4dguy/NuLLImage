@@ -3,195 +3,48 @@
 
 #include "NuLLProcessing.h"
 
-//discrete convolution of matrix (2D convolution)
-template<typename T> void NuLLProcessing::convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Matrix<T>& kernel)
-{
-    T val;
-    size_t width = mtx.width();
-    size_t height = mtx.height();
 
-    size_t kWidth = kernel.width();
-    size_t kHeight = kernel.height();
-
-    size_t offsetX = kernel.width() / 2;
-    size_t offsetY = kernel.height() / 2;
-
-    for(uint y=0; y<height; ++y)
-    {
-        for(uint x=0; x<width; ++x)
-        {
-            val = 0.0f;
-            for(uint ky=0; ky<kHeight; ++ky)
-            {
-                for(uint kx=0; kx<kWidth; ++kx)
-                {
-                    val += kernel(kx, ky) * mtx.getMirrored(x+(offsetX-kx), y+(offsetY-ky));
-                }
-            }
-            dst(x,y) = val;
-        }
-    }
-}
-
-//covolution with 1D kernel
-//faster than 2D convolution, with linear running time
-//valid alternative if kernel is separable
-template<typename T> void NuLLProcessing::convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernel)
-{
-	convolve(mtx, dst, kernel, kernel);
-}
-
-//covolution with 1D kernel
-//faster than 2D convolution, with linear running time
-//valid alternative if kernel is separable
-template <typename T> void NuLLProcessing::convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelX, const Vector<T>& kernelY)
-{
-	Matrix<T> tmp(mtx.width(), mtx.height());
-	NuLLProcessing::convolveX(mtx, tmp, kernelX);
-	NuLLProcessing::convolveY(tmp, dst, kernelY);
-}
-
-//convolution with 1D kernel
-//x direction only
-template <typename T> void NuLLProcessing::convolveX(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelX)
-{
-	const uint width = mtx.width();
-	const uint height = mtx.height();
-
-	T val;
-	const uint kSizeX = kernelX.size();
-	const uint offsetX = kSizeX / 2;
-
-	//convolution in x-direction
-	for(uint y=0; y<height; ++y)
-	{
-		for(uint x=0; x<width; ++x)
-		{
-			val = 0.;
-			for(uint i=0; i<kSizeX; ++i)
-			{
-				val += kernelX[i] * mtx.getMirrored(x+offsetX-i, y);
-			}
-			dst(x,y) = val;
-		}
-	}
-}
-
-//convolution with 1D kernel
-//x direction only
-template <typename T> void NuLLProcessing::convolveY(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelY)
-{
-	const uint width = mtx.width();
-	const uint height = mtx.height();
-
-	T val;
-	const uint kSizeY = kernelY.size();
-	const uint offsetY = kSizeY / 2;
-
-	//convolution in y-direction
-	for(uint y=0; y<height; ++y)
-	{
-		for(uint x=0; x<width; ++x)
-		{
-			val = 0;
-			for(uint i=0; i<kSizeY; ++i)
-			{
-				val += kernelY[i] * mtx.getMirrored(x, y+offsetY-i);
-			}
-			dst(x,y) = val;
-		}
-	}
-}
-
-//normalizes matrix to make sum of entries equal 1
-//useful for kernel normalization
-template<typename T> void NuLLProcessing::normalize(Matrix<T>& mtx)
-{
-    T factor = 0;
-    size_t height = mtx.height();
-    size_t width = mtx.width();
-
-    for(uint y=0; y<height; ++y)
-        for(uint x=0; x<width; ++x)
-            factor += mtx(x,y);
-
-    mtx /= factor;
-}
-
-//creates identity kernel for convolution
-//useful for kernel design
-template <typename T> void NuLLProcessing::identityKernel(Matrix<T>& dst, int radius)
-{
-	dst.fill(0.0);
-	dst(radius, radius) = 1.0;
-}
-
-//disc-shaped pillbox kernel
-template <typename T> void NuLLProcessing::pillboxKernel(Matrix<T>& dst, int radius)
-{
-    const int dim = (2 * radius) + 1;
-    int radSq = radius * radius;
-    T scale = 0;
-
-    //kernel calculation
-    for(int y=0; y<dim; ++y)
-    {
-        for(int x=0; x<dim; ++x)
-        {
-            if(((radius-x)*(radius-x) + (radius-y) * (radius-y)) <= radSq)
-            {
-                dst(x,y) = 1.0;
-                ++scale;
-            }
-        }
-    }
-    dst /= scale;
-}
-
-//creates a gaussian kernel of given size
-//sigma/ variance parameter only has notable effect for large kernels
-template <typename T> void NuLLProcessing::gaussianKernel(Matrix<T>& dst, int radius, double sigma)
-{
-	if(!sigma)
-		sigma = radius;
-
-    const uint dim = (2 * radius) + 1;
-	const double pi = 2.0 * asinf(1.0);
-
-    T div = 2 * pi * sigma * sigma;
-    T kx, ky, res, scale;
-    scale = 0;
-
-    //kernel calculation
-    for(uint y=0; y<dim; ++y)
-    {
-        for(uint x=0; x<dim; ++x)
-        {
-            kx = (x - radius) * (x - radius);
-            ky = (y - radius) * (y - radius);
-            res = -(ky + kx);
-            res = exp(res / (2 * sigma * sigma));
-            res /= div;
-            dst(x,y) = res;
-
-            scale += res;
-        }
-    }
-
-	//normalization: sum of entries only roughly == 1
-    dst /= scale;
-}
-
-//smoothing with pillbox kernel
-//uses separation theorem for fast convolution/ linear running time
+//smoothing with box kernel
+//uses fast blurring with linear running time
 template <typename T> void NuLLProcessing::boxBlur(const Matrix<T>& mtx, Matrix<T>& dst, int radius)
 {
-	uint kSize = (2 * radius) + 1;
-	Vector<T> kernel(kSize);
-	kernel.fill(1.);
-	kernel /= (T)kSize;
+	const uint kSize = (2 * radius) + 1;
 
-	convolve(mtx, dst, kernel);
+	const size_t width = mtx.width();
+	const size_t height = mtx.height();
+
+	Matrix<T> tmp(width, height);
+
+	const T factor = (T)1.0 / (T)kSize;
+	T val;
+
+	//blurring in x direction
+	for (uint y = 0; y < height; ++y)
+	{
+		val = 0;
+		for (int i = -radius; i <= radius; ++i)
+			val += mtx.getMirrored(i, y);
+
+		for (uint x = 0; x < width; ++x)
+		{
+			val += (mtx.getMirrored(x + radius, y) - mtx.getMirrored(x - radius - 1, y));
+			tmp(x, y) = val * factor;
+		}
+	}
+
+	//blurring in y direction
+	for (uint x = 0; x < width; ++x)
+	{
+		val = 0;
+		for (int i = -radius; i <= radius; ++i)
+			val += tmp.getMirrored(x, i);
+
+		for (uint y = 0; y < height; ++y)
+		{
+			val += (tmp.getMirrored(x, y + radius) - tmp.getMirrored(x, y - radius - 1));
+			dst(x, y) = val * factor;
+		}
+	}
 }
 
 //gaussian smoothing for matrices
@@ -201,7 +54,7 @@ template <typename T> void NuLLProcessing::gaussianBlur(const Matrix<T>& mtx, Ma
 	if(!sigma)
 		sigma = radius;
 
-	const int kSize = (2 * radius) + 1;
+	const uint kSize = (2 * radius) + 1;
 	const double pi = 2.0 * asinf(1.0);
 	const double divExp = 2 * sigma * sigma;
 	const double div = sqrt(2 * pi) * sigma;
@@ -218,7 +71,7 @@ template <typename T> void NuLLProcessing::gaussianBlur(const Matrix<T>& mtx, Ma
 	}
 	kernel /= (T)scale;
 
-	convolve(mtx, dst, kernel);
+	NuLLConvolve::convolve(mtx, dst, kernel);
 }
 
 //apply affine rescale afterwards or else over and undershoots occur
@@ -238,8 +91,8 @@ template <typename T> void NuLLProcessing::differenceOfGaussians(const Matrix<T>
 //first order derivative (central differential quotient) for matrices
 template <typename T> void NuLLProcessing::firstDerivative(const Matrix<T>& mtx, Matrix<T>& dstGrad, Matrix<T>& dstDir)
 {
-    uint width = mtx.width();
-    uint height = mtx.height();
+    const uint width = mtx.width();
+    const uint height = mtx.height();
     T gradMag;
 
 	Matrix<T> dx(width, height);
@@ -250,8 +103,8 @@ template <typename T> void NuLLProcessing::firstDerivative(const Matrix<T>& mtx,
 	stencil[1] = 0;
 	stencil[2] = .5;
 
-	convolveX(mtx, dx, stencil);
-	convolveY(mtx, dy, stencil);
+	NuLLConvolve::convolveX(mtx, dx, stencil);
+	NuLLConvolve::convolveY(mtx, dy, stencil);
 
     for(uint y=0; y<height; ++y)
     {
@@ -276,8 +129,8 @@ template <typename T> void NuLLProcessing::firstDerivative(const Matrix<T>& mtx,
 //second order derivative (central differential quotient) for matrices
 template <typename T> void NuLLProcessing::secondDerivative(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-    uint width = mtx.width();
-    uint height = mtx.height();
+    const uint width = mtx.width();
+    const uint height = mtx.height();
     T gradMag;
 
 	Matrix<T> dxx(width, height);
@@ -288,8 +141,8 @@ template <typename T> void NuLLProcessing::secondDerivative(const Matrix<T>& mtx
 	stencil[1] = -2;
 	stencil[2] = 1;
 
-	convolveX(mtx, dxx, stencil);
-	convolveY(mtx, dyy, stencil);
+	NuLLConvolve::convolveX(mtx, dxx, stencil);
+	NuLLConvolve::convolveY(mtx, dyy, stencil);
 
     for(uint y=0; y<height; ++y)
     {
@@ -303,8 +156,8 @@ template <typename T> void NuLLProcessing::secondDerivative(const Matrix<T>& mtx
 
 template <typename T> void NuLLProcessing::laplacian(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-    uint  width = mtx.width();
-	uint height = mtx.height();
+    const uint width = mtx.width();
+	const uint height = mtx.height();
 
 	Matrix<T> dxx(width, height);
 	Matrix<T> dyy(width, height);
@@ -314,8 +167,8 @@ template <typename T> void NuLLProcessing::laplacian(const Matrix<T>& mtx, Matri
 	stencil[1] = -2;
 	stencil[2] = 1;
 
-	convolveX(mtx, dxx, stencil);
-	convolveY(mtx, dyy, stencil);
+	NuLLConvolve::convolveX(mtx, dxx, stencil);
+	NuLLConvolve::convolveY(mtx, dyy, stencil);
 
     for(uint y=0; y<height; ++y)
         for(uint x=0; x<width; ++x)
@@ -327,8 +180,8 @@ template <typename T> void NuLLProcessing::laplacian(const Matrix<T>& mtx, Matri
 template <typename T> void NuLLProcessing::localVariance(const Matrix<T>& mtx, Matrix<T>& dst, int radius)
 {
 	const int radsq = radius * radius;
-	int width = mtx.width();
-    int height = mtx.height();
+	const uint width = mtx.width();
+    const uint height = mtx.height();
 	T mean, var;
 
 	std::vector<T> neighbors;
@@ -372,8 +225,8 @@ template <typename T> void NuLLProcessing::localVariance(const Matrix<T>& mtx, M
 //useful for corner detection
 template <typename T> void NuLLProcessing::meanCurvature(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-	uint width = mtx.width();
-	uint height = mtx.height();
+	const uint width = mtx.width();
+	const uint height = mtx.height();
 	T dxSq, dySq;
 	T k1, k2;
 
@@ -385,8 +238,8 @@ template <typename T> void NuLLProcessing::meanCurvature(const Matrix<T>& mtx, M
 	stencil[1] = 0;
 	stencil[2] = .5;
 
-	convolveX(mtx, dx, stencil);
-	convolveY(mtx, dy, stencil);
+	NuLLConvolve::convolveX(mtx, dx, stencil);
+	NuLLConvolve::convolveY(mtx, dy, stencil);
 
 	for(uint y=0; y<height; ++y)
 	{
@@ -403,8 +256,8 @@ template <typename T> void NuLLProcessing::meanCurvature(const Matrix<T>& mtx, M
 
 template <typename T> void NuLLProcessing::harrisCorners(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-	uint width = mtx.width();
-	uint height = mtx.height();
+	const uint width = mtx.width();
+	const uint height = mtx.height();
 	T det, tr;
 
 	Matrix<T> dx(width, height);
@@ -415,8 +268,8 @@ template <typename T> void NuLLProcessing::harrisCorners(const Matrix<T>& mtx, M
 	stencil[1] = 0;
 	stencil[2] = .5;
 
-	convolveX(mtx, dx, stencil);
-	convolveY(mtx, dy, stencil);
+	NuLLConvolve::convolveX(mtx, dx, stencil);
+	NuLLConvolve::convolveY(mtx, dy, stencil);
 
 	for(uint y=0; y<height; ++y)
 	{
@@ -503,8 +356,8 @@ template <typename T> void NuLLProcessing::automatedThresholding(const Matrix<T>
 //simple gamma correction
 template <typename T> void NuLLProcessing::gammaCorrection(const Matrix<T>& mtx, Matrix<T>& dst, double gamma)
 {
-	T maxVal = NuLLTools::maxValue(mtx);
-	T gammaInv = 1.0 / gamma;
+	const T maxVal = NuLLTools::maxValue(mtx);
+	const T gammaInv = 1.0 / gamma;
 
 	for(uint y=0; y<mtx.height(); ++y)
 		for(uint x=0; x<mtx.width(); ++x)
@@ -529,10 +382,10 @@ template <typename T> void NuLLProcessing::logDynamicCompression(const Matrix<T>
 template <typename T> void NuLLProcessing::affineRescale(const Matrix<T>& mtx, Matrix<T>& dst, double minVal, double maxVal)
 {
 	T val;
-	T imgMax = NuLLTools::maxValue(mtx);
-	T imgMin = NuLLTools::minValue(mtx);
-	T imgDiff = (imgMax == imgMin)? imgMin : (imgMax - imgMin);		//if imgMax==imgMin, we get div by zero
-	T valDiff = maxVal - minVal;
+	const T imgMax = NuLLTools::maxValue(mtx);
+	const T imgMin = NuLLTools::minValue(mtx);
+	const T imgDiff = (imgMax == imgMin)? imgMin : (imgMax - imgMin);		//if imgMax==imgMin, we get div by zero
+	const T valDiff = maxVal - minVal;
 
 	for(uint y=0; y<mtx.height(); ++y)
 	{

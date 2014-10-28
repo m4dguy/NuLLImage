@@ -1,38 +1,26 @@
 #ifndef NULLPROCESSING_H
 #define NULLPROCESSING_H
 
-#include <algorithm>
 #include <vector>
 #include <math.h>
 
+#include "Matrix.h"
+
 #include "NuLLTools.inl"
+#include "NuLLConvolve.inl"
 
 /*
  *
  * methods for data and signal processing
- * includes:    point operations
+ * includes:    blurring
+ *				point operations
  *              derivative filters (first order, second order)
- *              kernel generators
- *              convolution
  *				scaling
  *
  */
 
 namespace NuLLProcessing
 {
-	//kernel operations
-    template <typename T> void normalize(Matrix<T>& mtx);
-    template <typename T> void convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Matrix<T>& kernel);
-	template <typename T> void convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernel);
-	template <typename T> void convolve(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelX, const Vector<T>& kernelY);
-	template <typename T> void convolveX(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelX);
-	template <typename T> void convolveY(const Matrix<T>& mtx, Matrix<T>& dst, const Vector<T>& kernelY);
-
-	//kernel generators
-	template <typename T> void identityKernel(Matrix<T>& dst, int radius = 1);
-	template <typename T> void pillboxKernel(Matrix<T>& dst, int radius = 1);
-    template <typename T> void gaussianKernel(Matrix<T>& dst, int radius = 1, double sigma = 0.0);
-
 	//simple blur techniques
 	template <typename T> void boxBlur(const Matrix<T>& mtx, Matrix<T>& dst, int radius = 1);
 	template <typename T> void gaussianBlur(const Matrix<T>& mtx, Matrix<T>& dst, int radius = 1, double sigma = 0.0);
