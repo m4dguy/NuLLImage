@@ -8,7 +8,7 @@ template <typename T> void NuLLMorphology::medianFilter(const Matrix<T>& mtx, Ma
 {
     const int radsq = radius * radius;
 	const size_t width = mtx.width();
-	const size_t = mtx.height();
+	const size_t height = mtx.height();
 
     std::vector<T> neighbors;
 	neighbors.reserve((radius+1)*(radius+1));
