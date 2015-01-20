@@ -13,4 +13,6 @@ namespace NuLLFile
 	template<typename T> int writePPM(const Matrix<T>& srcR, const Matrix<T>& srcG, const Matrix<T>& srcB, const char* filename);
 };
 
+#include "NuLLFile.inl"
+
 #endif // NULLFILE_H
