@@ -26,4 +26,6 @@ namespace NuLLConvolve
     template <typename T> void gaussianKernel(Matrix<T>& dst, const int radius = 1, const double sigma = 0.5);
 }
 
+#include "NuLLConvolve.inl"
+
 #endif // NULLCONVOLVE_H
