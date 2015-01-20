@@ -59,6 +59,26 @@ template <typename T> void NuLLTools::getRow(const Matrix<T>& src, Vector<T>& ds
 
 }
 
+template <typename T> void NuLLTools::elementwiseAddition(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)
+{
+	size_t width = mtx1.width();
+	size_t height = mtx1.height();
+
+	for (uint y = 0; y<height; ++y)
+		for (uint x = 0; x<width; ++x)
+			dst(x, y) = mtx1(x, y) + mtx2(x, y);
+}
+
+template <typename T> void NuLLTools::elementwiseSubtraction(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)
+{
+	size_t width = mtx1.width();
+	size_t height = mtx1.height();
+
+	for (uint y = 0; y<height; ++y)
+		for (uint x = 0; x<width; ++x)
+			dst(x, y) = mtx1(x, y) - mtx2(x, y);
+}
+
 template <typename T> void NuLLTools::elementwiseMultiplication(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)
 {
 	size_t width = mtx1.width();
@@ -69,14 +89,14 @@ template <typename T> void NuLLTools::elementwiseMultiplication(const Matrix<T>&
 			dst(x,y) = mtx1(x,y) * mtx2(x,y);
 }
 
-template <typename T> void NuLLTools::elementwiseAddition(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)
+template <typename T> void NuLLTools::elementwiseDivision(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)
 {
 	size_t width = mtx1.width();
 	size_t height = mtx1.height();
 
-	for(uint y=0; y<height; ++y)
-		for(uint x=0; x<width; ++x)
-			dst(x,y) = mtx1(x,y) + mtx2(x,y);
+	for (uint y = 0; y<height; ++y)
+		for (uint x = 0; x<width; ++x)
+			dst(x, y) = mtx1(x, y) / mtx2(x, y);
 }
 
 template <typename T> void NuLLTools::elementwiseEquals(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst)

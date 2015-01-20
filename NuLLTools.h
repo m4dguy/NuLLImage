@@ -19,8 +19,10 @@ namespace NuLLTools
 	template <typename T> void getRow(const Matrix<T>& src, Vector<T>& dst, uint row);
 
 	//elementwise operations
-	template <typename T> void elementwiseMultiplication(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
 	template <typename T> void elementwiseAddition(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
+	template <typename T> void elementwiseSubtraction(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
+	template <typename T> void elementwiseMultiplication(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
+	template <typename T> void elementwiseDivision(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
 	template <typename T> void elementwiseEquals(const Matrix<T>& mtx1, const Matrix<T> mtx2, Matrix<T>& dst);
 
 	//statistics
@@ -36,5 +38,7 @@ namespace NuLLTools
 
 	template<typename T> void imageHistogram(const Matrix<T>& src, Vector<T>& dst);
 }
+
+#include "NuLLTools.inl"
 
 #endif // NULLTOOLS_H
