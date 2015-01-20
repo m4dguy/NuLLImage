@@ -23,4 +23,6 @@ namespace HoughTransform
 	void mergeCircles(std::vector<HoughCircle>& circles, uint maxDist=10);
 }
 
+#include "HoughTransform.h"
+
 #endif
