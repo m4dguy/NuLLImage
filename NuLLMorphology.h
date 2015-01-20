@@ -26,4 +26,6 @@ namespace NuLLMorphology
 	template <typename T> void distanceTransform(const Matrix<T>& mtx, Matrix<T>& dst);
 }
 
+#include NuLLMorphology.inl"
+
 #endif // NULLPROCESSING_H

@@ -38,8 +38,8 @@ template <typename T> void NuLLMorphology::medianFilter(const Matrix<T>& mtx, Ma
 //dilation for matrices
 template <typename T> void NuLLMorphology::dilation(const Matrix<T>& mtx, Matrix<T>& dst, int radius)
 {
-	const size_t = mtx.width();
-	const size_t = mtx.height();
+	const size_t width = mtx.width();
+	const size_t height = mtx.height();
 
     T sup;
     std::vector<T> neighbors;
@@ -159,7 +159,7 @@ template <typename T> void NuLLMorphology::selfdualTopHat(const Matrix<T>& mtx, 
 //use on binary images with values: 0, 255
 template <typename T> void NuLLMorphology::distanceTransform(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-	const size_t  width = mtx.width();
+	const size_t width = mtx.width();
 	const size_t height = mtx.height();
 
 	//max distance
