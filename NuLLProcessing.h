@@ -6,8 +6,8 @@
 
 #include "Matrix.h"
 
-#include "NuLLTools.inl"
-#include "NuLLConvolve.inl"
+#include "NuLLTools.h"
+#include "NuLLConvolve.h"
 
 /*
  *
@@ -58,6 +58,7 @@ namespace NuLLProcessing
 	template <typename T> void mirrorY(const Matrix<T>& mtx, Matrix<T>& dst);
 
 	//misc
+	template <typename T> void RGBtoHSV(const Matrix<T>& srcR, const Matrix<T>& srcG, const Matrix<T>& srcB, Matrix<T>& dstH, Matrix<T>& dstS, Matrix<T>& dstV);
 	template <typename T> void localMaxima(const Matrix<T>& mtx, Matrix<T>& dst, const int radius=1);
 }
 

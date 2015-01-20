@@ -485,6 +485,40 @@ template <typename T> void NuLLProcessing::mirrorY(const Matrix<T>& mtx, Matrix<
 			dst(x,y) = mtx(x, height-y-1);
 }
 
+template <typename T> void NuLLProcessing::RGBtoHSV(const Matrix<T>& srcR, const Matrix<T>& srcG, const Matrix<T>& srcB, Matrix<T>& dstH, Matrix<T>& dstS, Matrix<T>& dstV)
+{
+	const uint width = srcR.width();
+	const uint height = srcR.height();
+
+	T m, M, h;
+
+	for (uint y = 0; y < height; ++y)
+	{
+		for (uint x = 0; x < width; ++x)
+		{
+			m = min(min(srcR(x, y), srcG(x, y)), srcB(x, y));
+			M = max(max(srcR(x, y), srcG(x, y)), srcB(x, y));
+
+			if ((srcR(x, y) >= srcG(x, y)) && (srcR(x, y) >= srcB(x, y)))
+				h = (((srcG(x, y) - srcB(x, y)) / (M - m)) * 60.);
+			
+			if ((srcG(x, y) >= srcB(x, y)) && (srcG(x, y) >= srcR(x, y)))
+				h = ((2. + (srcB(x, y) - srcR(x, y)) / (M - m)) * 60.);
+			
+			if ((srcB(x, y) >= srcR(x, y)) && (srcB(x, y) >= srcG(x, y)))
+				h = ((4. + (srcR(x, y) - srcG(x, y)) / (M - m)) * 60.);
+
+			dstH(x, y) = h;
+			dstS(x, y) = (M - m) / M;
+			dstV(x, y) = M;
+		}
+	}
+
+
+
+
+}
+
 template <typename T> void NuLLProcessing::localMaxima(const Matrix<T>& mtx, Matrix<T>& dst, const int radius)
 {
 	const uint width = mtx.width();
