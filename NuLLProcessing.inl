@@ -54,7 +54,7 @@ template <typename T> void NuLLProcessing::gaussianBlur(const Matrix<T>& mtx, Ma
 	if(!sigma)
 		sigma = radius;
 
-	const uint kSize = (2 * radius) + 1;
+	const int kSize = (2 * radius) + 1;
 	const double pi = 2.0 * asinf(1.0);
 	const double divExp = 2 * sigma * sigma;
 	const double div = sqrt(2 * pi) * sigma;
