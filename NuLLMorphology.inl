@@ -154,13 +154,88 @@ template <typename T> void NuLLMorphology::selfdualTopHat(const Matrix<T>& mtx, 
 	dst += tmp;
 }
 
+template <typename T> void NuLLMorphology::shockFilter(const Matrix<T>& mtx, Matrix<T>& dst, const double tau, const uint iterations)
+{
+	const size_t width = mtx.width();
+	const size_t height = mtx.height();
+
+	Matrix<T> tmp(width, height);
+	dst = mtx;
+
+	T val, sgn;
+	T dx, dy, dxx, dyy;
+
+	for (uint i = 0; i < iterations; ++i)
+	{
+		for (uint y = 0; y < height; ++y)
+		{
+			for (uint x = 0; x < width; ++x)
+			{
+				dx = (dst.getMirrored(x + 1, y) - dst.getMirrored(x - 1, y)) * .5;
+				dy = (dst.getMirrored(x, y + 1) - dst.getMirrored(x, y - 1)) * .5;
+
+				dxx = dst.getMirrored(x + 1, y) - 2 * dst(x, y) + dst.getMirrored(x - 1, y);
+				dyy = dst.getMirrored(x, y + 1) - 2 * dst(x, y) + dst.getMirrored(x, y - 1);
+
+				sgn = ((dxx+dyy)>=0)? (1.) : (-1.);
+				val = sgn * sqrt(dx*dx+dy*dy);
+				tmp(x, y) = dst(x, y) + tau * val;
+			}
+		}
+		dst.swap(tmp);
+	}
+}
+
+template <typename T> void NuLLMorphology::meanCurvatureFilter(const Matrix<T>& mtx, Matrix<T>& dst, const double tau, const uint iterations)
+{
+	const size_t width = mtx.width();
+	const size_t height = mtx.height();
+
+	Matrix<T> tmp(width, height);
+	dst = mtx;
+
+	T div, val;
+	T dx, dy, dxx, dyy, dxy;
+
+	for (uint i = 0; i < iterations; ++i)
+	{
+		for (uint y = 0; y < height; ++y)
+		{
+			for (uint x = 0; x < width; ++x)
+			{
+				dx = (dst.getMirrored(x + 1, y) - dst.getMirrored(x - 1, y)) * .5;
+				dy = (dst.getMirrored(x, y + 1) - dst.getMirrored(x, y - 1)) * .5;
+
+				dxx = dst.getMirrored(x + 1, y) - 2 * dst(x, y) + dst.getMirrored(x - 1, y);
+				dyy = dst.getMirrored(x, y + 1) - 2 * dst(x, y) + dst.getMirrored(x, y - 1);
+
+				dxy = .25*((dst.getMirrored(x + 1, y + 1) - dst.getMirrored(x + 1, y - 1)) - (dst.getMirrored(x - 1, y + 1) - dst.getMirrored(x - 1, y - 1)));
+
+				div = dx*dx + dy*dy;
+				//div = sqrt(div * div * div);
+				if (div != 0.)
+				{
+					val = (dy*dy*dxx - 2*dx*dy*dxy + dx*dx*dyy) / div;
+					tmp(x, y) = dst(x, y) + tau * val;
+				}
+				else
+				{
+					tmp(x, y) = dst(x, y);
+				}
+
+			}
+		}
+		dst.swap(tmp);
+	}
+}
+
 //distance transform
 //uses fast scheme vd boomgaard
 //use on binary images with values: 0, 255
 template <typename T> void NuLLMorphology::distanceTransform(const Matrix<T>& mtx, Matrix<T>& dst)
 {
-	const size_t width = mtx.width();
-	const size_t height = mtx.height();
+	uint  width = mtx.width();
+	uint height = mtx.height();
 
 	//max distance
 	const T inf = (width * width + height * height);

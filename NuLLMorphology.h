@@ -22,10 +22,11 @@ namespace NuLLMorphology
 	template <typename T> void blackTopHat(const Matrix<T>& mtx, Matrix<T>& dst, int radius = 1);
 	template <typename T> void selfdualTopHat(const Matrix<T>& mtx, Matrix<T>& dst, int radius = 1);
 
+	template <typename T> void shockFilter(const Matrix<T>& mtx, Matrix<T>& dst, const double tau=1., const uint iterations=10);
+	template <typename T> void meanCurvatureFilter(const Matrix<T>& mtx, Matrix<T>& dst, const double tau=.1, const uint iterations=25);
+
 	//non-flat morphology
 	template <typename T> void distanceTransform(const Matrix<T>& mtx, Matrix<T>& dst);
 }
-
-#include NuLLMorphology.inl"
 
 #endif // NULLPROCESSING_H
